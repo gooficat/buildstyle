@@ -1,0 +1,3 @@
+C:/msys64/home/buildstyle/out/build/buildstyle/CMakeFiles/BuildStyle.dir
+C:/msys64/home/buildstyle/out/build/buildstyle/CMakeFiles/edit_cache.dir
+C:/msys64/home/buildstyle/out/build/buildstyle/CMakeFiles/rebuild_cache.dir

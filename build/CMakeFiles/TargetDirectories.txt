@@ -1,0 +1,3 @@
+C:/msys64/home/buildstyle/build/CMakeFiles/FPSGame.dir
+C:/msys64/home/buildstyle/build/CMakeFiles/edit_cache.dir
+C:/msys64/home/buildstyle/build/CMakeFiles/rebuild_cache.dir
