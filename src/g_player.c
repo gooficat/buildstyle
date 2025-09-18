@@ -51,9 +51,7 @@ void P_Update() {
     if (G_Polygon_Point(&sectors[player.currentSector], (vec2_s){newPos.x, newPos.y})) {
         player.position = newPos;
     }
-    else {
-        
-    }
+
     for (size_t s = 0; s != sectorCount; s++) {
         if (G_Polygon_Point(&sectors[s], (vec2_s){player.position.x, player.position.y})) {
             player.currentSector = s;
