@@ -26,7 +26,7 @@ bool G_Line_Line(vec2_s a1, vec2_s a2, vec2_s b1, vec2_s b2) {
     return false;
 }
 
-void G_Entity_Move_And_Collide(sect_t* s, vec3_s* p, vec2_s n) {
+void G_Entity_Move_And_Collide(sect_t* s, vec3_s* p, vec3_s n) {
     for (size_t i = 0; i != s->vertCt; i++) {
         vec2_s va = (vec2_s){s->verts[i].x, s->verts[i].y};
         vec2_s vb = (vec2_s){s->verts[(i + 1) % s->vertCt].x, s->verts[(i + 1) % s->vertCt].y};

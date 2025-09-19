@@ -49,7 +49,7 @@ void P_Update() {
         player.position.z
     };
 
-    G_Entity_Move_And_Collide(&sectors[player.currentSector], &player.position, (vec2_s){newPos.x - player.position.x, newPos.y - player.position.y});
+    G_Entity_Move_And_Collide(&sectors[player.currentSector], &player.position, newPos);
     
     for (size_t s = 0; s != sectorCount; s++) {
         if (G_Polygon_Point(&sectors[s], (vec2_s){player.position.x, player.position.y})) {

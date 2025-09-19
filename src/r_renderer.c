@@ -59,12 +59,18 @@ void R_DrawPixel(int x, int y, Uint32 color) {
     pixels[y * game_state.scrW + x] = color;
 }
 
+#define MAX_RECURSIONS 2
+
 void R_DrawSector(struct sector* sector) {
+    static size_t recursionCount = 0;
+    if (recursionCount++ > MAX_RECURSIONS) {
+        recursionCount = 0;
+        return;
+    }
     for (size_t v = 0; v != sector->vertCt; v++) {
         vert_t va = sector->verts[v];
         vert_t vb = sector->verts[(v + 1) % sector->vertCt];
 
-        if (va.to == 1) return;
         if (!va.to) {
             R_DrawLine((vec2i_s){va.x, va.y}, (vec2i_s){vb.x, vb.y}, 0xFFFFFFFF);
         } else {
@@ -78,9 +84,14 @@ void R_DrawSector(struct sector* sector) {
 void R_Render() {
     SDL_LockSurface(surface);
     memset(pixels, 0x00000000, surface->h * surface->w * sizeof(Uint32));
-    R_DrawPixel(player.position.x, player.position.y, 0xFFFF00FF);
-    
+
     R_DrawSector(&sectors[player.currentSector]);
+
+    for (int i = -1; i != 2; i += 1) {
+        for (int j = -1; j != 2; j += 1) {
+            R_DrawPixel(player.position.x + i, player.position.y + j, 0xFFFF00FF);
+        }
+    }
 
     SDL_UnlockSurface(surface);
     SDL_UpdateWindowSurface(window);

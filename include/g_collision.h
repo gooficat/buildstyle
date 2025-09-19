@@ -9,4 +9,4 @@
 
 bool G_Polygon_Point(sect_t* s, vec2_s p);
 
-void G_Entity_Move_And_Collide(sect_t* s, vec3_s* p, vec2_s n);
+void G_Entity_Move_And_Collide(sect_t* s, vec3_s* p, vec3_s n);
