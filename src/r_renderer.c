@@ -30,22 +30,22 @@ void R_Init() {
     surface = SDL_GetWindowSurface(window);
     pixels = (Uint32*)surface->pixels;
 
-    sectors = malloc(2 * sizeof(*sectors));
+    sectors = calloc(2, sizeof(*sectors));
     sectorCount = 2;
     sectors[0] = (struct sector){
         {
-            {210, 210},
+            {210, 210, .to = 0},
             {300, 210, .to = 2},
-            {300, 300},
-            {110, 300}
+            {300, 300, .to = 0},
+            {110, 300, .to = 0}
         },
         4
     };
     sectors[1] = (struct sector){
         {
-            {300, 210},
-            {400, 210},
-            {400, 250},
+            {300, 210, .to = 0},
+            {400, 210, .to = 0},
+            {400, 250, .to = 0},
             {300, 300, .to = 1}
         },
         4
@@ -68,6 +68,8 @@ void R_DrawSector(struct sector* sector) {
         if (!va.to) {
             R_DrawLine((vec2i_s){va.x, va.y}, (vec2i_s){vb.x, vb.y}, 0xFFFFFFFF);
         } else {
+            R_DrawLine((vec2i_s){va.x, va.y}, (vec2i_s){vb.x, vb.y}, 0xFFFF0000);
+
             R_DrawSector((struct sector*)&sectors[va.to - 1]);
         }
     }

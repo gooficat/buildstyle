@@ -48,14 +48,13 @@ void P_Update() {
         player.position.y + (move.x * player.sinRotation + move.y * player.cosRotation) * player.speed * game_state.deltaTime,
         player.position.z
     };
-    if (G_Polygon_Point(&sectors[player.currentSector], (vec2_s){newPos.x, newPos.y})) {
-        player.position = newPos;
-    }
 
+    G_Entity_Move_And_Collide(&sectors[player.currentSector], &player.position, (vec2_s){newPos.x - player.position.x, newPos.y - player.position.y});
+    
     for (size_t s = 0; s != sectorCount; s++) {
         if (G_Polygon_Point(&sectors[s], (vec2_s){player.position.x, player.position.y})) {
             player.currentSector = s;
-            printf("Player in sector %d\n", player.currentSector);
+            //printf("Player in sector %d\n", player.currentSector);
             break;
         }
     }
