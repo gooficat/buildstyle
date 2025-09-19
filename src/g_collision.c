@@ -37,6 +37,5 @@ void G_Entity_Move_And_Collide(sect_t* s, vec3_s* p, vec3_s n) {
             }
         }
     }
-    p->x = n.x;
-    p->y = n.y;
+    *p = n;
 }

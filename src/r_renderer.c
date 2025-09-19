@@ -20,12 +20,12 @@ void R_DrawLine(vec2i_s a, vec2i_s b, Uint32 color) {
 }
 
 void R_VLine(int x, int y1, int y2, Uint32 color) {
-    for (int y = y1; y <= y2; y++) {
+    for (int y = y1; y != y2; y++) {
         R_DrawPixel(x, y, color);
     }
 }
 
-void R_DrawWall(int ax, int at, int ab, int bx, int bt, int bb, Uint32 color) {
+void R_DrawWall(int ax, int bx, int at, int bt, int ab, int bb, Uint32 color) {
 
     if (ax > bx) {
         int swp = ax;
@@ -49,20 +49,20 @@ void R_DrawWall(int ax, int at, int ab, int bx, int bt, int bb, Uint32 color) {
 
     int initialX = ax;
 
-    SDL_clamp(ax, 0, game_state.scrW - 1);
-    SDL_clamp(bx, 0, game_state.scrW - 1);
+    SDL_clamp(ax, 1, game_state.scrW - 2);
+    SDL_clamp(bx, 1, game_state.scrW - 2);
     int x, y;
-    for (x = ax; x != bx; x++) {
+    for (x = ax; x < bx; x++) {
         int y1 = dyt * (x - initialX) / dx + at;
         int y2 = dyb * (x - initialX) / dx + ab;
 
-        y1 = SDL_clamp(y1, 0, game_state.scrH - 1);
-        y2 = SDL_clamp(y2, 0, game_state.scrH - 1);
+        y1 = SDL_clamp(y1, 1, game_state.scrH - 2);
+        y2 = SDL_clamp(y2, 1, game_state.scrH - 2);
 
-        R_VLine(x, y1, y2, color);
+        for (y = y1; y < y2; y++) {
+            R_DrawPixel(x, y, color);
+        }
     }
-    R_DrawLine((vec2i_s){ax, at}, (vec2i_s){bx, bt}, color);
-    R_DrawLine((vec2i_s){ax, ab}, (vec2i_s){bx, bb}, color);
 }
 
 sect_t* sectors;
@@ -83,7 +83,8 @@ void R_Init() {
         },
         4,
         -20.0f,
-        50.0f
+        100.0f,
+        .color = 0xFF660055
     };
     sectors[1] = (struct sector){
         {
@@ -94,7 +95,8 @@ void R_Init() {
         },
         4,
         -20.0f,
-        50.0f
+        50.0f,
+        .color = 0xFF660000
     };
 }
 
@@ -106,7 +108,7 @@ void R_DrawPixel(int x, int y, Uint32 color) {
 }
 
 
-void clip(float *x1, float *y1, float x2, float y2) {
+void clip(int *x1, int *y1, int *z1, int x2, int y2, int z2) {
     // float s = (y2 - *y1) ? *y1 / (y2 - *y1) : 1e30;
 
     // *x1 += s * (x2 - *x1);
@@ -121,73 +123,73 @@ void clip(float *x1, float *y1, float x2, float y2) {
     *y1 = *y1 + s * (y2 - (*y1));
     if (!(*y1))
         *y1 = 1;
+    *z1 = *z1 + s * (z2 - (*z1));
 }
 
 
 #define MAX_RECURSIONS 2
 
 void R_DrawSector(struct sector* sector) {
-    static size_t recursionCount = 0;
-    if (recursionCount++ > MAX_RECURSIONS ||sector->drawn) {
-        recursionCount = 0;
+    if (sector->drawn) {
         return;
     }
     sector->drawn = true;
+        int wx[4], wy[4], wz[4];
     for (size_t v = 0; v != sector->vertCt; v++) {
-            vert_t va = sector->verts[v];
-            vert_t vb = sector->verts[(v + 1) % sector->vertCt];
-            R_DrawLine((vec2i_s){va.x, va.y}, (vec2i_s){vb.x, vb.y}, 0xFFFFFFFF);
+        vert_t va = sector->verts[v];
+        vert_t vb = sector->verts[(v + 1) % sector->vertCt];
 
-            vec2_s wallStart = {
-                va.x - player.position.x,
-                va.y - player.position.y,
-            };
-            vec2_s wallEnd = {
-                vb.x - player.position.x,
-                vb.y - player.position.y
-            };
+        int x1 = va.x - player.position.x;
+        int y1 = va.y - player.position.y;
 
-            float z1 = sector->z1 - player.position.z;
-            float z2 = sector->z2 - player.position.z;
+        int x2 = vb.x - player.position.x;
+        int y2 = vb.y - player.position.y;
 
+        if (x2 < x1) {
+            int swp = x1;
+            x1 = x2;
+            x2 = swp;
 
-            vec2_s tWallStart = {
-                wallStart.x * player.cosRotation - wallStart.y * player.sinRotation,
-                wallStart.y * player.cosRotation + wallStart.x * player.sinRotation
-            };
-            vec2_s tWallEnd = {
-                wallEnd.x * player.cosRotation - wallEnd.y * player.sinRotation,
-                wallEnd.y * player.cosRotation + wallEnd.x * player.sinRotation
-            };
+            swp = y1;
+            y1 = y2;
+            y2 = swp;
+        }
 
-            if (tWallStart.y <= 0 && tWallEnd.y <= 0) {
-                continue;
+        wx[2] = wx[0] = x1 * player.sinRotation - y1 * player.cosRotation;
+        wx[3] = wx[1] = x2 * player.sinRotation - y2 * player.cosRotation;
+
+        wy[2] = wy[0] = y1 * player.sinRotation + x1 * player.cosRotation;
+        wy[3] = wy[1] = y2 * player.sinRotation + x2 * player.cosRotation;
+
+        wz[1] = wz[0] = sector->z1 - player.position.z;
+        wz[3] = wz[2] = sector->z2 - player.position.z;
+
+        if (wy[0] <= 0 && wy[1] <= 0) continue;
+
+        if (!va.to) {
+            if (wy[0] <= 0) {
+                clip(&wx[0], &wy[0], &wz[0], wx[1], wy[1], wz[1]);
+                clip(&wx[2], &wy[2], &wz[2], wx[3], wy[3], wz[3]);
             }
-        
-            if (!sectors->verts[v].to) {
-                if (tWallStart.y <= 0) {
-                    clip(&tWallStart.x, &tWallStart.y, tWallEnd.x, tWallEnd.y);
-                }
-                else if (tWallEnd.y <= 0) {
-                    clip(&tWallEnd.x, &tWallEnd.y, tWallStart.x, tWallStart.y);
-                }
-
-                int pWallStartX = tWallStart.x * player.focal / tWallStart.y + game_state.scrW / 2;
-                int pWallStartY1 = z1 * player.focal / tWallStart.y + game_state.scrH / 2;
-                int pWallStartY2 = z2 * player.focal / tWallStart.y + game_state.scrH / 2;
-
-                int pWallEndX = tWallEnd.x * player.focal / tWallEnd.y + game_state.scrW / 2;
-                int pWallEndY1 = z1 * player.focal / tWallEnd.y + game_state.scrH / 2;
-                int pWallEndY2 = z2 * player.focal / tWallEnd.y + game_state.scrH / 2;
-
-                Uint32 color = (sector->verts[v].to) ? 0xFF00FFFF : 0xFFFF0000;
-
-
-                R_DrawWall(pWallStartX, pWallStartY1, pWallStartY2, pWallEndX, pWallEndY1, pWallEndY2, color);  
+            if (wy[1] <= 0) {
+                clip(&wx[1], &wy[1], &wz[1], wx[0], wy[0], wz[0]);
+                clip(&wx[3], &wy[3], &wz[3], wx[2], wy[2], wz[2]);
             }
-            else {
-                R_DrawSector(&sectors[sector->verts[v].to - 1]);
-            }
+
+
+            wx[0] = wx[0] * player.focal / wy[0] + game_state.scrW / 2;
+            wx[1] = wx[1] * player.focal / wy[1] + game_state.scrW / 2;
+
+            wy[0] = wz[0] * player.focal / wy[0] + game_state.scrH / 2;
+            wy[1] = wz[1] * player.focal / wy[1] + game_state.scrH / 2;
+            wy[2] = wz[2] * player.focal / wy[2] + game_state.scrH / 2;
+            wy[3] = wz[3] * player.focal / wy[3] + game_state.scrH / 2;
+
+            R_DrawWall(wx[0], wx[1], wy[0], wy[1], wy[2], wy[3], sector->color);
+        }
+        else {
+            R_DrawSector(&sectors[va.to - 1]);
+        }
     }  
 }
 
@@ -201,13 +203,6 @@ void R_Render() {
     for (int i = 0; i != sectorCount; i++) {
         sectors[i].drawn = false;
     }
-
-    for (int i = -1; i != 2; i += 1) {
-        for (int j = -1; j != 2; j += 1) {
-            R_DrawPixel(player.position.x + i, player.position.y + j, 0xFFFF00FF);
-        }
-    }
-    R_DrawLine((vec2i_s){player.position.x, player.position.y}, (vec2i_s){player.position.x + player.sinRotation * 10, player.position.y + player.cosRotation * 10}, 0xFFFFFF00);
 
     SDL_UnlockSurface(surface);
     SDL_UpdateWindowSurface(window);

@@ -24,6 +24,7 @@ typedef struct sector {
     size_t vertCt;
     float z1, z2;
     bool drawn;
+    Uint32 color;
 } sect_t;
 
 extern sect_t *sectors;

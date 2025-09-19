@@ -11,7 +11,7 @@ void P_Init() {
     };
     player.focal = 200.0f;
     player.speed = 0.1f;
-    player.lookSpeed = 0.01f;
+    player.lookSpeed = 0.005f;
     player.currentSector = 0;
     player.rotation = 0.0f;
 }
@@ -31,11 +31,17 @@ void P_Update() {
     if (game_state.keys[SDL_SCANCODE_D]) {
         move.x++;
     }
+    if (game_state.keys[SDL_SCANCODE_LSHIFT]) {
+        move.z--;
+    }
+    if (game_state.keys[SDL_SCANCODE_SPACE]) {
+        move.z++;
+    }
     if (game_state.keys[SDL_SCANCODE_Q]) {
-        player.rotation -= player.lookSpeed * game_state.deltaTime;
+        player.rotation += player.lookSpeed * game_state.deltaTime;
     }
     if (game_state.keys[SDL_SCANCODE_E]) {
-        player.rotation += player.lookSpeed * game_state.deltaTime;
+        player.rotation -= player.lookSpeed * game_state.deltaTime;
     }
     player.sinRotation = sinf(player.rotation);
     player.cosRotation = cosf(player.rotation);
@@ -44,9 +50,9 @@ void P_Update() {
         move.y *= 0.7071f;
     }
     vec3_s newPos = {
-        player.position.x + (move.x * player.cosRotation - move.y * player.sinRotation) * player.speed * game_state.deltaTime,
-        player.position.y + (move.x * player.sinRotation + move.y * player.cosRotation) * player.speed * game_state.deltaTime,
-        player.position.z
+        player.position.x + (move.x * player.sinRotation + move.y * player.cosRotation) * player.speed * game_state.deltaTime,
+        player.position.y + (move.y * player.sinRotation - move.x * player.cosRotation) * player.speed * game_state.deltaTime,
+        player.position.z + (move.z) * player.speed * game_state.deltaTime
     };
 
     G_Entity_Move_And_Collide(&sectors[player.currentSector], &player.position, newPos);
