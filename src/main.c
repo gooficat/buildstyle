@@ -22,6 +22,7 @@ int main() {
         R_Render();
         G_FrameEnd();
     }
+    
     R_Destroy();
     W_Destroy();
     return 0;

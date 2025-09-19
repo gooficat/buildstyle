@@ -22,6 +22,8 @@ typedef struct vertex {
 typedef struct sector {
     vert_t verts[8];
     size_t vertCt;
+    float z1, z2;
+    bool drawn;
 } sect_t;
 
 extern sect_t *sectors;

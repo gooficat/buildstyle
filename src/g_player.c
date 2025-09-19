@@ -32,10 +32,10 @@ void P_Update() {
         move.x++;
     }
     if (game_state.keys[SDL_SCANCODE_Q]) {
-        player.rotation += player.lookSpeed * game_state.deltaTime;
+        player.rotation -= player.lookSpeed * game_state.deltaTime;
     }
     if (game_state.keys[SDL_SCANCODE_E]) {
-        player.rotation -= player.lookSpeed * game_state.deltaTime;
+        player.rotation += player.lookSpeed * game_state.deltaTime;
     }
     player.sinRotation = sinf(player.rotation);
     player.cosRotation = cosf(player.rotation);
