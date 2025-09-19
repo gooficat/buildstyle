@@ -32,4 +32,5 @@ void G_FrameStart() {
 
 void G_FrameEnd() {
     game_state.deltaTime = SDL_GetTicks() - game_state.frameStartTime;
+    printf("%f\n", 1000.0f / game_state.deltaTime);
 }

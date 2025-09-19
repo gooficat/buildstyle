@@ -76,10 +76,10 @@ void R_Init() {
     sectorCount = 2;
     sectors[0] = (struct sector){
         {
-            {210, 210, .to = 0},
+            {210, 210},
             {300, 210, .to = 2},
-            {300, 300, .to = 0},
-            {110, 300, .to = 0}
+            {300, 300},
+            {110, 300}
         },
         4,
         -20.0f,
@@ -88,9 +88,9 @@ void R_Init() {
     };
     sectors[1] = (struct sector){
         {
-            {300, 210, .to = 0},
-            {400, 210, .to = 0},
-            {400, 250, .to = 0},
+            {300, 210},
+            {400, 210},
+            {400, 250},
             {300, 300, .to = 1}
         },
         4,
@@ -101,10 +101,9 @@ void R_Init() {
 }
 
 void R_DrawPixel(int x, int y, Uint32 color) {
-    y = -y + game_state.scrH - 1;
-    if (x < 0 || x >= game_state.scrW || y < 0 || y >= game_state.scrH)
-        return;
-    pixels[y * game_state.scrW + x] = color;
+    y = -y + game_state.scrH;
+    if (x >= 0 && x < game_state.scrW && y >= 0 && y < game_state.scrH)
+        pixels[y * game_state.scrW + x] = color;
 }
 
 
@@ -165,26 +164,27 @@ void R_DrawSector(struct sector* sector) {
         wz[3] = wz[2] = sector->z2 - player.position.z;
 
         if (wy[0] <= 0 && wy[1] <= 0) continue;
+        if (wy[0] <= 0) {
+            clip(&wx[0], &wy[0], &wz[0], wx[1], wy[1], wz[1]);
+            clip(&wx[2], &wy[2], &wz[2], wx[3], wy[3], wz[3]);
+        }
+        if (wy[1] <= 0) {
+            clip(&wx[1], &wy[1], &wz[1], wx[0], wy[0], wz[0]);
+            clip(&wx[3], &wy[3], &wz[3], wx[2], wy[2], wz[2]);
+        }
+
+
+        wx[0] = wx[0] * player.focal / wy[0] + game_state.scrW / 2;
+        wx[1] = wx[1] * player.focal / wy[1] + game_state.scrW / 2;
+
+        wy[0] = wz[0] * player.focal / wy[0] + game_state.scrH / 2;
+        wy[1] = wz[1] * player.focal / wy[1] + game_state.scrH / 2;
+        wy[2] = wz[2] * player.focal / wy[2] + game_state.scrH / 2;
+        wy[3] = wz[3] * player.focal / wy[3] + game_state.scrH / 2;
+
+
 
         if (!va.to) {
-            if (wy[0] <= 0) {
-                clip(&wx[0], &wy[0], &wz[0], wx[1], wy[1], wz[1]);
-                clip(&wx[2], &wy[2], &wz[2], wx[3], wy[3], wz[3]);
-            }
-            if (wy[1] <= 0) {
-                clip(&wx[1], &wy[1], &wz[1], wx[0], wy[0], wz[0]);
-                clip(&wx[3], &wy[3], &wz[3], wx[2], wy[2], wz[2]);
-            }
-
-
-            wx[0] = wx[0] * player.focal / wy[0] + game_state.scrW / 2;
-            wx[1] = wx[1] * player.focal / wy[1] + game_state.scrW / 2;
-
-            wy[0] = wz[0] * player.focal / wy[0] + game_state.scrH / 2;
-            wy[1] = wz[1] * player.focal / wy[1] + game_state.scrH / 2;
-            wy[2] = wz[2] * player.focal / wy[2] + game_state.scrH / 2;
-            wy[3] = wz[3] * player.focal / wy[3] + game_state.scrH / 2;
-
             R_DrawWall(wx[0], wx[1], wy[0], wy[1], wy[2], wy[3], sector->color);
         }
         else {
